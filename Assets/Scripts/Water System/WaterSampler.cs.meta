@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: f48f9f010c1f8c945a38500330c35661
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - waveSamplingShader: {fileID: 7200000, guid: 8849c1580e8eed64c90a6ac4c17be985, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

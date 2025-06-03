@@ -1,0 +1,53 @@
+#pragma kernel SampleWavePoints
+
+/*
+ * By using the same library the vertex shader uses to
+ * displace vertices, we have to maintain the waves funciton
+ * only once and we're sure that anyone who wants to calculate
+ * the waves motion will have a synced and coherent result.
+ */
+#include "../Includes/WaterMass.hlsl"
+
+/*
+ * Collection of parameters for this compute shader to interact
+ * with the CPU.
+ */
+//	IN parameters
+float4 wavesPacked;
+float4 time;
+//	IN-OUT parameters
+RWStructuredBuffer<float3> samples;
+
+//	SampleWavePoints kernel implementation
+/*
+ * This thread configuration may seem inefficient, and it is from
+ * a theoretical point of view, but it deserves an explanation.
+ * 
+ * Unless we decide to create a centralized and async buoyancy,
+ * or simply water sampling system, each buoy will run this
+ * compute shader as a standalone client. Each buoy samples 1 or 3
+ * points, which are really few.
+ * Configuring threads as (3,1,1) would potentially increase efficiency
+ * but in practice would require adding boolean checks on each
+ * thread to understand if we're out of bounds (for instance if we
+ * try to sample 1 or 2 only points), as well as it would require
+ * to pass in an additional parameter telling how many samples have
+ * been passed.
+ * In such a scenario, running one thread per group is a decent
+ * approach, avoids passing additional data and introducing checks.
+ */
+[numthreads(1,1,1)]
+void SampleWavePoints(uint3 id : SV_DispatchThreadID)
+{
+	//	Take the sample
+	uint index = id.x;
+	
+	//	Temporary store the position we're working on
+	float3 samplePosition = samples[index];
+	
+	//	Displace the y coordinate using the shared formula
+	samplePosition.y += GetWaveDisplacementAtPointFromPacked(samplePosition, wavesPacked, time);
+	
+	//	Update the buffer with the displaced position
+	samples[index] = samplePosition;
+}
